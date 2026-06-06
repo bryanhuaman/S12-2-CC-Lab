@@ -108,18 +108,33 @@ def pantalla_auth():
 # ----------------------------------------------------------------
 # Carga de evidencia (dato NO estructurado) a Storage
 # ----------------------------------------------------------------
+# def subir_evidencia(archivo, user_id):
+#     if archivo is None:
+#         return None
+#     ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+#     ruta = f"{user_id}/{ts}_{archivo.name}"
+#     supabase.storage.from_(SUPABASE_BUCKET).upload(
+#         ruta,
+#         archivo.getvalue(),
+#         {"content-type": archivo.type or "application/octet-stream"},
+#     )
+#     # Se devuelve la URL publica del archivo subido
+#     return supabase.storage.from_(SUPABASE_BUCKET).get_public_url(ruta)
 def subir_evidencia(archivo, user_id):
     if archivo is None:
         return None
     ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    ruta = f"{user_id}/{ts}_{archivo.name}"
-    supabase.storage.from_(SUPABASE_BUCKET).upload(
-        ruta,
-        archivo.getvalue(),
-        {"content-type": archivo.type or "application/octet-stream"},
-    )
-    # Se devuelve la URL publica del archivo subido
-    return supabase.storage.from_(SUPABASE_BUCKET).get_public_url(ruta)
+    ruta = f"{ts}_{archivo.name}"   # ← sin subcarpeta user_id, más simple
+    try:
+        supabase_service.storage.from_(SUPABASE_BUCKET).upload(
+            ruta,
+            archivo.getvalue(),
+            {"content-type": archivo.type or "application/octet-stream"},
+        )
+        return supabase_service.storage.from_(SUPABASE_BUCKET).get_public_url(ruta)
+    except Exception as e:
+        st.error(f"Error subiendo evidencia: {e}")
+        return None
 
 
 # ----------------------------------------------------------------
