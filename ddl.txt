@@ -1,0 +1,39 @@
+-- ============================================================
+-- DDL para Supabase (Postgres)
+-- Ejecutar en: Supabase -> SQL Editor -> New query -> Run
+-- App: Monitoreo de servidores (Help Desk)
+-- ============================================================
+
+-- Se crea la tabla principal (estructurados + ruta a no estructurados)
+create table if not exists public.server_metrics (
+    id          bigint generated always as identity primary key,
+    user_id     uuid,                       -- quien registro (auth.uid), null si lo genero el job
+    email       text,                       -- correo del usuario o 'databricks-job'
+    servidor    text not null,              -- ej: SRV-CORE-01
+    distrito    text,                       -- ubicacion / datacenter, ej: San Isidro
+    cpu_pct     double precision,           -- % uso CPU
+    ram_pct     double precision,           -- % uso RAM
+    disco_pct   double precision,           -- % uso disco
+    estado      text,                       -- OK / ADVERTENCIA / CRITICO
+    origen      text default 'app',         -- 'app' (manual) o 'databricks' (job)
+    evidencia_path text,                    -- DATO NO ESTRUCTURADO: URL de captura/log subido a Storage
+    created_at  timestamptz default now()
+);
+
+-- Indice por fecha para que el area de analisis ordene rapido
+create index if not exists idx_server_metrics_created_at
+    on public.server_metrics (created_at desc);
+
+-- ------------------------------------------------------------
+-- Para esta actividad academica se desactiva RLS y asi la app
+-- (anon key) y el job (service_role key) insertan sin politicas.
+-- En produccion esto NO se hace; se usarian policies por usuario.
+-- ------------------------------------------------------------
+alter table public.server_metrics disable row level security;
+
+-- ============================================================
+-- STORAGE (datos no estructurados)
+-- Crear un bucket PUBLICO llamado 'evidencias' desde:
+--   Supabase -> Storage -> New bucket -> name: evidencias -> Public bucket = ON
+-- Ahi se guardan las capturas/logs que sube el usuario en la app.
+-- ============================================================
