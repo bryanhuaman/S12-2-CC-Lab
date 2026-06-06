@@ -34,7 +34,7 @@ def get_var(name: str, default: str = "") -> str:
 
 SUPABASE_URL = get_var("SUPABASE_URL")
 SUPABASE_KEY = get_var("SUPABASE_KEY")          # anon key (la app)
-SUPABASE_BUCKET = get_var("SUPABASE_BUCKET", "evidencias")
+SUPABASE_BUCKET = get_var("SUPABASE_BUCKET")
 
 TABLE = "server_metrics"
 
